@@ -1,0 +1,49 @@
+{
+  "name": "agritech",
+  "version": "1.0.0",
+  "description": "Agritech - Agricultural Research and Laboratory Management System",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --windows"
+  },
+  "keywords": [
+    "agritech",
+    "agriculture",
+    "hydroponics",
+    "irrigation",
+    "soil",
+    "microgreens",
+    "research"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^26.15.3",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.agritech.app",
+    "productName": "Agritech",
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Agritech"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json",
+      "renderer/**/*",
+      "data/**/*"
+    ]
+  }
+}
