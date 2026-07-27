@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Loading Agritech...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: transparent;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
+            -webkit-app-region: drag; /* Allows dragging the splash window */
+        }
+        .splash-container {
+            width: 600px;
+            height: 400px;
+            background-image: url('splash.png');
+            background-size: cover;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 35px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+        }
+        .loading-text {
+            color: #ffffff;
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-bottom: 10px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            -webkit-app-region: no-drag;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 2px;
+            overflow: hidden;
+            -webkit-app-region: no-drag;
+        }
+        .progress-fill {
+            width: 40%;
+            height: 100%;
+            background: #20c997;
+            border-radius: 2px;
+            animation: loading-bar 2s infinite ease-in-out;
+        }
+        @keyframes loading-bar {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-container">
+        <div class="loading-text">Initializing local database server...</div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+    </div>
+</body>
+</html>

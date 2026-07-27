@@ -7,7 +7,9 @@ const http = require('http');
 let mainWindow;
 let serverProcess = null;
 
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = app.isPackaged 
+    ? path.join(app.getPath('userData'), 'data') 
+    : path.join(__dirname, 'data');
 const IMAGES_DIR = path.join(DATA_DIR, 'images');
 const DOCUMENTS_DIR = path.join(DATA_DIR, 'documents');
 
@@ -25,13 +27,17 @@ function startDatabaseServer() {
     return new Promise((resolve) => {
         initializeDirectories();
         
-        const serverScript = path.join(__dirname, 'db_server.js');
+        let serverScript = path.join(__dirname, 'db_server.js');
+        if (app.isPackaged) {
+            serverScript = serverScript.replace('app.asar', 'app.asar.unpacked');
+        }
         console.log('Spawning SQLite server with host Node at:', serverScript);
 
         // Spawn using shell to correctly locate node command on Windows path
         serverProcess = spawn('node', [serverScript], { 
             shell: true,
-            stdio: ['pipe', 'pipe', 'pipe'] 
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: Object.assign({}, process.env, { AGRITECH_DATA_DIR: DATA_DIR })
         });
 
         serverProcess.stdout.on('data', (data) => {
@@ -114,6 +120,35 @@ function sendRequest(apiPath, method, body = null) {
     });
 }
 
+let splashWindow = null;
+
+function createSplashWindow() {
+    splashWindow = new BrowserWindow({
+        width: 600,
+        height: 400,
+        frame: false,
+        transparent: true,
+        alwaysOnTop: true,
+        resizable: false,
+        show: false,
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true
+        },
+        icon: path.join(__dirname, 'icon.ico')
+    });
+
+    splashWindow.loadFile(path.join(__dirname, 'renderer', 'splash.html'));
+    
+    splashWindow.once('ready-to-show', () => {
+        splashWindow.show();
+    });
+
+    splashWindow.on('closed', () => {
+        splashWindow = null;
+    });
+}
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1280,
@@ -126,13 +161,20 @@ function createWindow() {
             nodeIntegration: false
         },
         title: 'Agritech v1.0',
-        autoHideMenuBar: true
+        autoHideMenuBar: true,
+        show: false, // Hidden until splash closes
+        icon: path.join(__dirname, 'icon.ico')
     });
 
     mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
-    // Optional: Open DevTools for debugging renderer side
-    // mainWindow.webContents.openDevTools();
+    mainWindow.once('ready-to-show', () => {
+        // Close splash window and show main window
+        if (splashWindow && !splashWindow.isDestroyed()) {
+            splashWindow.close();
+        }
+        mainWindow.show();
+    });
 
     mainWindow.on('closed', () => {
         mainWindow = null;
@@ -141,10 +183,17 @@ function createWindow() {
 
 // App lifecycle hooks
 app.whenReady().then(async () => {
+    // Show splash screen immediately on boot
+    createSplashWindow();
+
     const serverStarted = await startDatabaseServer();
     if (!serverStarted) {
+        if (splashWindow && !splashWindow.isDestroyed()) {
+            splashWindow.close();
+        }
         dialog.showErrorBox('Database Connection Error', 'Failed to connect to local SQLite database server. Please ensure Node.js is installed on your PATH and launch start.bat again.');
     }
+    
     createWindow();
 
     app.on('activate', () => {
